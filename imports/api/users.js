@@ -2,7 +2,6 @@ import * as yup from 'yup';
 import {Meteor} from "meteor/meteor";
 import {shirtSizes} from "../lib/constants";
 import moment from "moment";
-import {cdnUrl, uploadImage} from "../lib/aws/s3";
 
 export const profileSchema = yup.object().shape({
   address: yup.string().required().max(1000),
@@ -13,7 +12,26 @@ export function avatarUrl(user) {
   return user.avatarUrl;
 }
 
+export function sendMessageReminders() {
+  const users = Meteor.users.find({
+    unreadMessages: {
+      $exists: true,
+      $not: {
+        $size: 0
+      }
+    }
+  }).fetch();
+  Email.send({
+    from: "secret-santa@grep.sh",
+    bcc: users.map(u => u.email),
+    subject: "You have unread messages at secret santa!",
+    text: "Someone's sent you a message on secret santa!\n" +
+      `Head over to ${Meteor.absoluteUrl(`/messages`)} to see what you've missed!`
+  });
+}
+
 export async function sync(user) {
+  const { cdnUrl, uploadImage } = import("../lib/aws/s3");
   // default update params
   const updateParams = {
     $set: {
@@ -85,12 +103,25 @@ if(Meteor.isServer) {
         shirtSize: 1,
         discordId: 1,
         "guilds": 1,
-        avatarUrl: 1
+        avatarUrl: 1,
+        theme: 1,
+        unreadMessages: 1
       }
     });
   });
 
   Meteor.methods({
+    'currentUser.setTheme'(theme) {
+      const user = Meteor.user();
+      if(!user || !['light', 'dark'].includes(theme)) return;
+      Meteor.users.update({
+        _id: user._id
+      }, {
+        $set: {
+          theme
+        }
+      });
+    },
     'users.updateProfile'(address, shirtSize) {
       try {
         profileSchema.validateSync({
@@ -107,7 +138,6 @@ if(Meteor.isServer) {
         console.error(e);
         throw new Meteor.Error("Invalid Document");
       }
-
     }
   });
 }

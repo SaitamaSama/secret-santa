@@ -1,9 +1,8 @@
 import React from "react";
 import AppBar from '@material-ui/core/AppBar';
 import Toolbar from '@material-ui/core/Toolbar';
-import {withStyles} from '@material-ui/styles';
+import withStyles from '@material-ui/core/styles/withStyles';
 import MenuIcon from '@material-ui/icons/Menu';
-import { State } from '../../lib/state';
 import IconButton from '@material-ui/core/IconButton';
 import Typography from '@material-ui/core/Typography';
 import { autorun } from 'meteor/cereal:reactive-render';
@@ -13,6 +12,7 @@ import AuthenticatedNavbarItems from "./AuthenticatedNavbarItems";
 import Hidden from "@material-ui/core/Hidden";
 import { routes } from '../../lib/constants';
 import ThemeToggle from "./ThemeToggle";
+import {AppStoreContext} from "../../stores/AppStore";
 
 const styles = theme => ({
     menuButton: {
@@ -29,8 +29,12 @@ const styles = theme => ({
 @withStyles(styles)
 @autorun
 export default class extends React.Component {
+    static contextType = AppStoreContext;
+
     render() {
         const { classes } = this.props;
+        const { toggleDrawer } = this.context;
+
         return(
             <AppBar position={"fixed"}>
                 <Toolbar>
@@ -38,7 +42,7 @@ export default class extends React.Component {
                         color="inherit"
                         aria-label="open drawer"
                         edge="start"
-                        onClick={() => State.set('drawerOpen', !State.get('drawerOpen'))}
+                        onClick={toggleDrawer}
                         className={classes.menuButton}
                     >
                         <MenuIcon />
@@ -57,7 +61,7 @@ export default class extends React.Component {
                     <div className={classes.grow} />
                     <AccountButtons />
                     <Hidden implementation="css" xsDown>
-                        <ThemeToggle themeToggleHandler={this.props.themeToggleHandler} />
+                        <ThemeToggle />
                     </Hidden>
                 </Toolbar>
             </AppBar>

@@ -4,7 +4,9 @@ import '../imports/api/users';
 import './api';
 import {createMatches} from "../imports/api/groups";
 import './migrations';
-import {sync} from "../imports/api/users";
+import {sendMessageReminders, sync} from "../imports/api/users";
+
+console.log(sync);
 
 ServiceConfiguration.configurations.upsert(
   {service: 'discord'},
@@ -34,6 +36,7 @@ SyncedCron.add({
   },
   job: function () {
     createMatches();
+    sendMessageReminders();
   }
 });
 

@@ -1,35 +1,30 @@
 import React from 'react';
-import {BrowserRouter} from 'react-router-dom';
+import { BrowserRouter } from 'react-router-dom';
 import MomentUtils from "@date-io/moment";
-import {ThemeProvider} from "@material-ui/styles";
-import {MuiPickersUtilsProvider} from "@material-ui/pickers";
+import ThemeProvider from "@material-ui/styles/ThemeProvider";
+import MuiPickersUtilsProvider from "@material-ui/pickers/MuiPickersUtilsProvider";
 import CssBaseline from "@material-ui/core/CssBaseline";
-import {SnackbarProvider} from "notistack";
+import SnackbarProvider from "notistack/build/SnackbarProvider";
 import Layout from "./Layout";
 import getTheme from './lib/theme';
+import {AppStoreContext} from './stores/AppStore';
+import { autorun } from 'meteor/cereal:reactive-render';
 
+@autorun
 export default class App extends React.Component {
-  state = {
-    theme: 'light'
-  };
-
-  toggleTheme() {
-    if(this.state.theme == 'light') {
-      this.setState({ theme: 'dark' });
-    } else {
-      this.setState({ theme: 'light' });
-    }
-  }
+  static contextType = AppStoreContext;
+  state = {};
 
   render() {
+    const { theme } = this.context;
     return (
       <MuiPickersUtilsProvider utils={MomentUtils}>
-        <ThemeProvider theme={getTheme(this.state.theme)}>
+        <ThemeProvider theme={getTheme(theme)}>
           <SnackbarProvider>
-            <CssBaseline/>
-            <BrowserRouter>
-              <Layout themeToggleHandler={() => this.toggleTheme()} />
-            </BrowserRouter>
+              <CssBaseline/>
+              <BrowserRouter>
+                <Layout />
+              </BrowserRouter>
           </SnackbarProvider>
         </ThemeProvider>
       </MuiPickersUtilsProvider>
